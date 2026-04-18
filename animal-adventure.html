@@ -106,7 +106,32 @@ function renderCat(el,ci){
   el.innerHTML = html;
   el.querySelector(".homebtn").addEventListener("click", function(){ setState({pg:"home",cat:null,ak:null}); });
   el.querySelectorAll(".anbtn").forEach(function(b){
+    var pressTimer = null;
     b.addEventListener("click", function(){ setState({pg:"info",ak:this.dataset.key}); });
+    b.addEventListener("mousedown", function(){
+      var key = this.dataset.key;
+      pressTimer = setTimeout(function(){
+        pressTimer = null;
+        var r = getRead();
+        if(r[key]){ delete r[key]; } else { r[key] = true; }
+        try{ localStorage.setItem("read", JSON.stringify(r)); }catch(e){}
+        setState({pg:"cat"});
+      }, 600);
+    });
+    b.addEventListener("mouseup", function(){ clearTimeout(pressTimer); });
+    b.addEventListener("mouseleave", function(){ clearTimeout(pressTimer); });
+    b.addEventListener("touchstart", function(e){
+      var key = this.dataset.key;
+      pressTimer = setTimeout(function(){
+        pressTimer = null;
+        var r = getRead();
+        if(r[key]){ delete r[key]; } else { r[key] = true; }
+        try{ localStorage.setItem("read", JSON.stringify(r)); }catch(e){}
+        setState({pg:"cat"});
+      }, 600);
+    }, {passive:true});
+    b.addEventListener("touchend", function(){ clearTimeout(pressTimer); });
+    b.addEventListener("touchmove", function(){ clearTimeout(pressTimer); });
   });
 }
 
