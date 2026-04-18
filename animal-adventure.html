@@ -147,8 +147,8 @@ function renderStory(el,an){
     +"<button class=\"back infobtn\">← Back</button>"
     +"<div style=\"text-align:center;margin-bottom:12px\">"
     +"<div style=\"font-size:30px\">"+an.emoji+"</div>"
-    +"<div style=\"background:rgba(255,255,255,.1);border-radius:99px;height:5px;margin:8px 0;overflow:hidden\"><div style=\"height:100%;background:"+ac+";width:"+pct+"%;border-radius:99px\"></div></div>"
-    +"<div style=\"font-size:10px;color:rgba(255,255,255,.35)\">"+(st.idx+1)+" / "+st.cks.length+"</div>"
+    +"<div style=\"background:rgba(255,255,255,.1);border-radius:99px;height:5px;margin:8px 0;overflow:hidden\"><div id=\"progbar\" style=\"height:100%;background:"+ac+";width:"+pct+"%;border-radius:99px;transition:width .3s\"></div></div>"
+    +"<div id=\"ctr\" style=\"font-size:10px;color:rgba(255,255,255,.35)\">"+(st.idx+1)+" / "+st.cks.length+"</div>"
     +"<button id=\"vbtn\" style=\"margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer\">"+(voiceOn?"🔇 Stop reading":"🔊 Read aloud")+"</button>"
     +"</div>"
     +"<div class=\"card\" style=\"border:1px solid "+ac+"33;min-height:150px;margin-bottom:14px;line-height:1.8\"><span id=\"tt\" style=\"color:rgba(255,255,255,.9);font-size:15px\">"+st.typed+"</span>"+(st.typing?"<span style=\"opacity:.4\">▋</span>":"")+"</div>"
@@ -185,19 +185,33 @@ function renderBtns(ac){
   }
 }
 
+function updateProgress(){
+  var an=A[st.ak]; if(!an) return;
+  var ac=an.accent;
+  var pct=((st.idx+(st.typing?.5:1))/st.cks.length)*100;
+  var bar=document.getElementById("progbar");
+  var ctr=document.getElementById("ctr");
+  if(bar) bar.style.width=pct+"%";
+  if(ctr) ctr.textContent=(st.idx+1)+" / "+st.cks.length;
+}
+
 function typeChunk(i){
   clearInterval(st.tm);
   st.idx=i; st.typed=""; st.typing=true;
+  updateProgress();
   var t=st.cks[i]||""; var j=0;
   var ac=A[st.ak].accent;
   var ttEl=document.getElementById("tt");
   if(!ttEl){ render(); ttEl=document.getElementById("tt"); }
+  // Show skip button immediately
+  renderBtns(ac);
   st.tm=setInterval(function(){
     j++; st.typed=t.slice(0,j);
     if(ttEl) ttEl.textContent=st.typed;
     if(j>=t.length){
       clearInterval(st.tm); st.tm=null; st.typing=false;
       if(i===st.cks.length-1) markRead(st.ak);
+      updateProgress();
       renderBtns(ac);
       if(voiceOn) speakNow();
     }
