@@ -14,6 +14,7 @@ input{font-family:Georgia,serif;outline:none}
 .s{min-height:100vh;padding:18px 14px}
 .card{background:rgba(255,255,255,.04);border-radius:14px;padding:13px}
 .back{background:none;color:rgba(255,255,255,.5);font-size:14px;margin-bottom:14px;display:block;padding:0}
+button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 </style>
 </head>
 <body>
@@ -122,16 +123,23 @@ function renderCat(el,ci){
     b.addEventListener("mouseleave", function(){ clearTimeout(pressTimer); });
     b.addEventListener("touchstart", function(e){
       var key = this.dataset.key;
+      var self = this;
       pressTimer = setTimeout(function(){
         pressTimer = null;
         var r = getRead();
         if(r[key]){ delete r[key]; } else { r[key] = true; }
         try{ localStorage.setItem("read", JSON.stringify(r)); }catch(e){}
+        // vibrate if supported
+        if(navigator.vibrate) navigator.vibrate(50);
         setState({pg:"cat"});
       }, 600);
-    }, {passive:true});
-    b.addEventListener("touchend", function(){ clearTimeout(pressTimer); });
-    b.addEventListener("touchmove", function(){ clearTimeout(pressTimer); });
+    }, {passive:false});
+    b.addEventListener("touchend", function(e){
+      if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
+      else { e.preventDefault(); }
+    });
+    b.addEventListener("touchmove", function(){ clearTimeout(pressTimer); pressTimer=null; });
+    b.addEventListener("contextmenu", function(e){ e.preventDefault(); });
   });
 }
 
